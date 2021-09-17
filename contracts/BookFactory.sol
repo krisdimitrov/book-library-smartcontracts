@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.6;
 
-contract BookFactory {
-    address private owner;
+import "../contracts/Ownable.sol";
+
+contract BookFactory is Ownable {
     uint bookIdCounter;
 
     struct Book {
@@ -13,33 +14,44 @@ contract BookFactory {
     }
 
     // events
-    event BookCreated(uint id, string title, uint numberOfCopies);
+    event BookAdded(uint id, string title, uint numberOfCopies);
+    event BookBorrowed(uint id, address user);
+    event BookReturned(uint id, address user);
 
     // storage and mapping
     uint[] private bookIds;
-    mapping(uint => Book) booksStorage;
+    mapping(uint => Book) books;
     mapping(uint => address[]) bookToCurrentBorrowedUsers;
-    mapping(address => mapping(uint => Book)) userToBorrowedBooks;
+    mapping(address => mapping(uint => bool)) userToBorrowedBooks;
 
-    constructor() {
-        owner = msg.sender;
-    }
+    function addBook(string memory _title, uint _numberOfCopies) public onlyOwner {        
+        address[] memory borrowHistory;
+        uint bookId = _getId();
+        Book memory newBook = Book(bookId, _title, _numberOfCopies, borrowHistory);
+        bookIds.push(bookId);
+        books[bookId] = newBook;
 
-    function addBook(string memory _title, uint _numberOfCopies) public {
-        require(msg.sender == owner, "Only the library owner can add books!");
-        _addBook(_getId(), _title, _numberOfCopies);
+        emit BookAdded(bookId, _title, _numberOfCopies);
     }
 
     function borrowBook(uint _bookId) public {
-        address[] memory borrowedUsers = bookToCurrentBorrowedUsers[_bookId];
-        if (borrowedUsers.length > 0) {
-            require(borrowedUsers[borrowedUsers.length - 1] != msg.sender,"User has already borrowed the book.");
-        }
-        require(booksStorage[_bookId].numberOfCopies > 0, "No available copies of the book.");
+        require(userToBorrowedBooks[msg.sender][_bookId] == false, "User has already borrowed the book.");     
+        require(books[_bookId].numberOfCopies > 0, "No available copies of the book.");
 
-        booksStorage[_bookId].numberOfCopies--;
-        booksStorage[_bookId].borrowedUsersHistory.push(msg.sender);
-        bookToCurrentBorrowedUsers[_bookId].push(msg.sender);
+        Book storage bookToBorrow = books[_bookId];
+        bookToBorrow.numberOfCopies--;
+        bookToBorrow.borrowedUsersHistory.push(msg.sender);
+        userToBorrowedBooks[msg.sender][_bookId] = true;
+
+        emit BookBorrowed(_bookId, msg.sender);
+    }
+
+    function returnBook(uint _bookId) public {
+        require(userToBorrowedBooks[msg.sender][_bookId] == true, "User has not borrowed this book.");     
+
+        books[_bookId].numberOfCopies++;
+        userToBorrowedBooks[msg.sender][_bookId] = false;
+        emit BookReturned(_bookId, msg.sender);
     }
 
     function getAvailableBooks() public view returns (Book[] memory) {
@@ -47,46 +59,36 @@ contract BookFactory {
         for (uint i = 0; i < bookIds.length; i++) {
             uint bookId = bookIds[i];
 
-            if (booksStorage[bookId].numberOfCopies > 0) {
+            if (books[bookId].numberOfCopies > 0) {
                 availableBooksCount++;
             }
+        }
+
+        if(availableBooksCount == 0) {
+            return new Book[](0);
         }
 
         Book[] memory availableBooks = new Book[](availableBooksCount);
         for (uint i = 0; i < bookIds.length; i++) {
             uint bookId = bookIds[i];
 
-            if (booksStorage[bookId].numberOfCopies > 0) {
-                availableBooks[i] = booksStorage[bookId];
+            if (books[bookId].numberOfCopies > 0) {
+                availableBooks[i] = books[bookId];
             }
         }
 
         return availableBooks;
     }
 
-    function getBookBorrowers(uint _bookId)
-        public
-        view
-        returns (address[] memory)
-    {
-        return bookToCurrentBorrowedUsers[_bookId];
+    function getBookBorrowers(uint _bookId) public view returns (address[] memory) {
+        return books[_bookId].borrowedUsersHistory;
     }
-
-    function _addBook(
-        uint id,
-        string memory _title,
-        uint _numberOfCopies
-    ) private {
-        address[] memory borrowHistory;
-        Book memory newBook = Book(id, _title, _numberOfCopies, borrowHistory);
-        bookIds.push(id);
-        booksStorage[id] = newBook;
-        emit BookCreated(id, _title, _numberOfCopies);
-    }
-
-    function _getIsBookBorrowedByUser(address _userId) private {}
 
     function _getId() private returns (uint) {
         return bookIdCounter++;
+    }
+
+    modifier checkIfBookExists(string memory _title) {
+
     }
 }
