@@ -82,6 +82,7 @@ contract BookLibrary is Ownable {
     }
 
     function getBookBorrowers(bytes32 _bookId) public view returns (address[] memory) {
+        require(_checkBookExists(_bookId), "Book does not exist.");
         return books[_bookId].borrowedUsersHistory;
     }
 
@@ -89,12 +90,14 @@ contract BookLibrary is Ownable {
         return keccak256(abi.encodePacked(_title));
     }
 
+    function _checkBookExists(bytes32 _id) private view returns (bool) {
+        Book memory existingBook = books[_id];
+        return bytes(existingBook.title).length != 0;
+    }
+
     modifier validateInputs(string memory _title, uint _numberOfCopies) {
         require(bytes(_title).length > 0, "Title should not be empty.");
-
-        bytes32 bookId = _getId(_title);
-        Book memory existingBook = books[bookId];
-        require(bytes(existingBook.title).length == 0, "Book already added.");
+        require(_checkBookExists(_getId(_title)) == false, "Book already added.");
         require(_numberOfCopies > 0, "Copies should be greater than 0.");
         _;
     }

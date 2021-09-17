@@ -64,4 +64,16 @@ contract BookLibraryTests is BookLibrary {
             Assert.equal(reason, "User has not borrowed this book.", "should fail with expected reason");
         }
     }
+
+    function checkBookBorrowersHistoryEmpty() public {
+        address[] memory bookBorrowers = bookLibrary.getBookBorrowers(bookInLibrary.id);
+        Assert.equal(bookBorrowers.length, 0, "should be no borrowers history");
+    }
+
+    function checkBookBorrowersHistory() public {
+        bookLibrary.borrowBook(bookInLibrary.id);
+        address[] memory bookBorrowers = bookLibrary.getBookBorrowers(bookInLibrary.id);
+        
+        Assert.equal(bookBorrowers.length, 1, "should be one address");
+    }
 }
