@@ -3,7 +3,7 @@ pragma solidity >=0.8.6;
 
 import "../contracts/Ownable.sol";
 
-contract BookFactory is Ownable {
+contract BookLibrary is Ownable {
     struct Book {
         bytes32 id;
         string title;
