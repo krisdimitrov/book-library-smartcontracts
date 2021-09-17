@@ -89,6 +89,7 @@ contract BookFactory is Ownable {
     }
 
     modifier checkIfBookExists(string memory _title) {
-
+        // add implementation
+        _;
     }
 }
