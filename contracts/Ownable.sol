@@ -2,7 +2,7 @@
 pragma solidity >=0.8.6;
 
 contract Ownable {
-    address public owner;
+    address private owner;
     
     modifier onlyOwner() {
         require(owner == msg.sender, "Not invoked by the owner.");
