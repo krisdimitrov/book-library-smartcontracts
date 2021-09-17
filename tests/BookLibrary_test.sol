@@ -25,6 +25,13 @@ contract BookLibraryTests is BookLibrary {
         Assert.equal(actualBook.title, testBookTitle, "title should be equal");
         Assert.equal(actualBook.numberOfCopies, testNumberOfBooks, "copies should be equal");
     }
+
+     function checkGetAvailableBooksEmpty() public {
+        bookLibrary = new BookLibrary();
+        Book[] memory actualBooks = bookLibrary.getAvailableBooks();
+        
+        Assert.equal(actualBooks.length, 0, "should not be any books available");
+    }
     
     function checkBorrowBook() public {
         bookLibrary.borrowBook(bookInLibrary.id);

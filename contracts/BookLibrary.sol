@@ -22,7 +22,7 @@ contract BookLibrary is Ownable {
     mapping(bytes32 => address[]) bookToCurrentBorrowedUsers;
     mapping(address => mapping(bytes32 => bool)) userToBorrowedBooks;
 
-    function addBook(string memory _title, uint _numberOfCopies) public onlyOwner checkIfBookExists(_title) {        
+    function addBook(string memory _title, uint _numberOfCopies) public onlyOwner validateInputs(_title, _numberOfCopies) {        
         address[] memory borrowHistory;
         bytes32 bookId = _getId(_title);
         Book memory newBook = Book(bookId, _title, _numberOfCopies, borrowHistory);
@@ -49,11 +49,12 @@ contract BookLibrary is Ownable {
 
         books[_bookId].numberOfCopies++;
         userToBorrowedBooks[msg.sender][_bookId] = false;
+        
         emit BookReturned(_bookId, msg.sender);
     }
 
     function getAvailableBooks() public view returns (Book[] memory) {
-        uint availableBooksCount;
+        uint availableBooksCount = 0;
         for (uint i = 0; i < bookIds.length; i++) {
             bytes32 bookId = bookIds[i];
 
@@ -67,11 +68,13 @@ contract BookLibrary is Ownable {
         }
 
         Book[] memory availableBooks = new Book[](availableBooksCount);
+        uint k = 0;
         for (uint i = 0; i < bookIds.length; i++) {
             bytes32 bookId = bookIds[i];
 
             if (books[bookId].numberOfCopies > 0) {
-                availableBooks[i] = books[bookId];
+                availableBooks[k] = books[bookId];
+                k++;
             }
         }
 
@@ -86,10 +89,13 @@ contract BookLibrary is Ownable {
         return keccak256(abi.encodePacked(_title));
     }
 
-    modifier checkIfBookExists(string memory _title) {
+    modifier validateInputs(string memory _title, uint _numberOfCopies) {
+        require(bytes(_title).length > 0, "Title should not be empty.");
+
         bytes32 bookId = _getId(_title);
-        Book memory book = books[bookId];
-        require(bytes(book.title).length == 0, "Book already added.");
+        Book memory existingBook = books[bookId];
+        require(bytes(existingBook.title).length == 0, "Book already added.");
+        require(_numberOfCopies > 0, "Copies should be greater than 0.");
         _;
     }
 }
