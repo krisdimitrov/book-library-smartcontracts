@@ -22,7 +22,7 @@
 			"problemMatcher": [],
 			"label": "npx hardhat test",
 			"detail": ""
-		}, 
+		},
 		{
 			"type": "npm",
 			"script": "coverage",
@@ -32,6 +32,28 @@
 			},
 			"problemMatcher": [],
 			"label": "npx hardhat coverage",
+			"detail": ""
+		},
+		{
+			"type": "npm",
+			"script": "deployLocal",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "npx hardhat deploy --network localhost",
+			"detail": ""
+		},
+		{
+			"type": "npm",
+			"script": "deployRopsten",
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			},
+			"problemMatcher": [],
+			"label": "npx hardhat deploy --network ropsten",
 			"detail": ""
 		}
 	]

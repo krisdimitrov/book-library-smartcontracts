@@ -18,7 +18,6 @@ async function main() {
   const bookLibrary = await BookLibrary.deploy();
 
   await bookLibrary.deployed();
-
   console.log("BookLibrary deployed to:", bookLibrary.address);
 }
 
