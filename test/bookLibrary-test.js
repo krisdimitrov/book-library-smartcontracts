@@ -27,7 +27,7 @@ describe("BookLibrary", function () {
     await addBookTx.wait();
   });
 
-  it("should be one book available", async () => {
+  it("check getAvailableBooks", async () => {
     let books = await bookLibrary.getAvailableBooks();
     expect(books.length).to.equal(1);
 
@@ -35,7 +35,12 @@ describe("BookLibrary", function () {
     expect(bookInLibrary).to.not.be.null;
     expect(bookInLibrary).to.not.be.undefined;
     expect(bookInLibrary).to.have.property("title").to.equal(TEST_BOOK_TITLE, "titles should match");
-    expect(bookInLibrary).to.have.property("numberOfCopies").to.equal(TEST_NUMBER_OF_BOOKS, "titles should match");
+    expect(bookInLibrary).to.have.property("copies").to.equal(TEST_NUMBER_OF_BOOKS, "titles should match");
+  });
+
+  it("check getAllBooks", async () => {
+    let books = await bookLibrary.getAllBooks();
+    expect(books.length).to.equal(1);
   });
 
   it("should be no books available", async () => {
@@ -49,13 +54,13 @@ describe("BookLibrary", function () {
 
   it("check borrowBook", async () => {
     let books = await bookLibrary.getAvailableBooks();
-    expect(books["0"]).property("numberOfCopies").to.be.equal(2, "should be two books available.");
-    
+    expect(books["0"]).property("copies").to.be.equal(2, "should be two books available.");
+
     const borrowBookTx = await bookLibrary.borrowBook(bookInLibrary.id);
     await borrowBookTx.wait();
 
     books = await bookLibrary.getAvailableBooks();
-    expect(books["0"]).property("numberOfCopies").to.be.equal(1, "should be one book available.");
+    expect(books["0"]).property("copies").to.be.equal(1, "should be one book available.");
   });
 
   it("check borrow same book twice", async () => {
@@ -68,11 +73,11 @@ describe("BookLibrary", function () {
     await borrowTx.wait();
 
     let books = await bookLibrary.getAvailableBooks();
-    expect(books["0"]).property("numberOfCopies").to.equal(1, "should be only one copy available");
-    
+    expect(books["0"]).property("copies").to.equal(1, "should be only one copy available");
+
     await bookLibrary.returnBook(bookInLibrary.id);
     books = await bookLibrary.getAvailableBooks();
-    expect(books["0"]).property("numberOfCopies").to.equal(2, "should be two copies available");
+    expect(books["0"]).property("copies").to.equal(2, "should be two copies available");
   });
 
   it("check return not borrowed book", async () => {
@@ -103,12 +108,12 @@ describe("BookLibrary", function () {
 
   it("check borrow by two users", async () => {
     const [owner, anotherUser] = await ethers.getSigners();
-    let books =  await bookLibrary.getAvailableBooks();
-    expect(books["0"].numberOfCopies).to.be.equal(2, "should be two books available initially");
+    let books = await bookLibrary.getAvailableBooks();
+    expect(books["0"].copies).to.be.equal(2, "should be two books available initially");
 
     await bookLibrary.borrowBook(bookInLibrary.id);
     books = await bookLibrary.getAvailableBooks();
-    expect(books["0"].numberOfCopies).to.be.equal(1, "should be one available after borrow");
+    expect(books["0"].copies).to.be.equal(1, "should be one available after borrow");
 
     await bookLibrary.connect(anotherUser).borrowBook(bookInLibrary.id);
     books = await bookLibrary.getAvailableBooks();
