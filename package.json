@@ -4,7 +4,7 @@
   "description": "Simple Solidity smart contracts for a book library management.",
   "main": "index.js",
   "directories": {
-    "test": "tests"
+    "test": "test"
   },
   "scripts": {
     "build": "npx hardhat compile",
